@@ -1,0 +1,15 @@
+com\university\accountstracker\controller\AdminController.class
+com\university\accountstracker\model\SerialHistory.class
+com\university\accountstracker\controller\ApiController.class
+com\university\accountstracker\controller\AdminController$1.class
+com\university\accountstracker\service\SerialService$1.class
+com\university\accountstracker\controller\ViewController.class
+com\university\accountstracker\service\CustomUserDetailsService.class
+com\university\accountstracker\service\InMemoryStudentStorageService.class
+com\university\accountstracker\config\SecurityConfig.class
+com\university\accountstracker\model\QueueSerials$QueueType.class
+com\university\accountstracker\model\QueueSerials.class
+com\university\accountstracker\model\User.class
+com\university\accountstracker\AccountstrackerApplication.class
+com\university\accountstracker\service\SerialService.class
+com\university\accountstracker\config\WebSocketConfig.class

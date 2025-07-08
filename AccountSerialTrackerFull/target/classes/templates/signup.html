@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Signup - Accounts Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .signup-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .signup-container h1 {
+            color: #28a745; /* Green for signup */
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .form-floating label {
+            color: #6c757d;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            padding: 12px;
+            font-size: 1.1em;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        .alert {
+            font-size: 0.9em;
+        }
+         .extra-links {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .extra-links a {
+            color: #3f51b5;
+            text-decoration: none;
+        }
+        .extra-links a:hover {
+            text-decoration: underline;
+        }
+        .form-text {
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h1><i class="fas fa-user-plus"></i> Student Signup</h1>
+
+        <div th:if="${signupError}" class="alert alert-danger" role="alert" th:text="${signupError}"></div>
+
+        <form th:action="@{/signup}" th:object="${user}" method="post">
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" name="email" placeholder="your.name@diu.edu.bd" th:field="*{email}" required>
+                <label for="email">DIU Email Address</label>
+                <div class="form-text">Must be a valid @diu.edu.bd email.</div>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                <label for="password">Password</label>
+                 <div class="form-text">Minimum 6 characters.</div>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+                <label for="confirmPassword">Confirm Password</label>
+            </div>
+            <button class="w-100 btn btn-lg btn-success" type="submit">Sign Up</button>
+        </form>
+        <div class="extra-links">
+            <p>Already have an account? <a th:href="@{/login}">Login here</a></p>
+             <p><a th:href="@{/}">Back to Serial Display</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

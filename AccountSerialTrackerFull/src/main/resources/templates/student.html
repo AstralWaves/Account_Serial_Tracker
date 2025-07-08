@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Queue Status - DIU Accounts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background-color: #f4f7f9; 
+            color: #34495e;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+         .navbar-brand, .nav-link, .welcome-text {
+            color: #fff !important;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .nav-link:hover {
+            color: #e0e0e0 !important;
+        }
+        .main-container {
+            padding-top: 25px;
+            padding-bottom: 40px;
+        }
+        .page-title {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .live-indicator {
+            display: inline-block; width: 10px; height: 10px;
+            background-color: #4caf50; border-radius: 50%;
+            margin-left: 8px; animation: pulse 1.8s infinite ease-in-out;
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        .connection-status {
+            text-align: center; margin-bottom: 25px; padding: 10px 15px;
+            border-radius: 8px; font-size: 0.95em; font-weight: 500;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .status-initial { background-color: #e9ecef; color: #495057; border: 1px solid #ced4da;}
+        .status-connected { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .status-connecting { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
+        .status-disconnected { background-color: #f8d7da; color: #58151c; border: 1px solid #f1aeb5; }
+        .connection-status i { margin-right: 8px; }
+        .connection-status .fa-spin { animation-duration: 1.5s; }
+
+
+        .serial-card {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-left-width: 5px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.07);
+            transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            height: 100%; 
+        }
+        .serial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .serial-card .card-header {
+            font-weight: 600;
+            font-size: 1.2em; 
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1.25rem;
+        }
+        .serial-card .card-header i { margin-right: 12px; font-size: 1.1em; }
+
+        .serial-card-tuition { border-left-color: #20c997; }
+        .serial-card-tuition .card-header { background-color: #e6f8f3; color: #0a5c40; }
+        .serial-card-hall { border-left-color: #fd7e14;  }
+        .serial-card-hall .card-header { background-color: #fff5e8; color: #8c460a; }
+        .serial-card-clearance { border-left-color: #0dcaf0; }
+        .serial-card-clearance .card-header { background-color: #e0f9fc; color: #075f70; }
+
+        .serial-card .card-body {
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            padding: 1.5rem;
+        }
+
+        .serial-number-display {
+            font-size: 3.8em; 
+            font-weight: 700; 
+            color: #343a40;
+            line-height: 1;
+            padding: 15px 0;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .serial-number-display.updated { animation: highlight-update 0.6s ease-out; }
+        @keyframes highlight-update {
+            0% { transform: scale(1); opacity: 1;}
+            50% { transform: scale(1.12); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 1;}
+        }
+        .last-updated { font-size: 0.85em; color: #6c757d; margin-top: 8px; }
+        .notify-btn-placeholder {
+            margin-top: 20px;
+            font-size: 0.9em;
+            border-color: #adb5bd;
+            color: #495057;
+        }
+        .notify-btn-placeholder:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}"><i class="fas fa-DIU"></i> DIU Accounts</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#studentNavbar" aria-controls="studentNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="studentNavbar">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                     <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <span class="navbar-text welcome-text me-3">Welcome, <strong sec:authentication="name" style="font-weight: 500;">User</strong>!</span>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/login}"><i class="fas fa-sign-in-alt me-1"></i> Login</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/signup}"><i class="fas fa-user-plus me-1"></i> Signup</a>
+                    </li>
+                     <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
+                        <a class="nav-link" th:href="@{/admin}"><i class="fas fa-user-shield me-1"></i> Admin Panel</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="nav-link btn btn-link" style="color: #ffca28 !important; font-weight: 500;"><i class="fas fa-sign-out-alt me-1"></i> Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="text-center mb-4 pt-2">
+            <h2 class="page-title">Live Queue Status <span class="live-indicator"></span></h2>
+        </div>
+        <div id="connectionStatus" class="connection-status status-initial">
+            <i class="fas fa-hourglass-start"></i> <span class="status-text">Awaiting connection...</span>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-6 col-lg-4 d-flex">
+                <div class="card serial-card serial-card-tuition w-100">
+                    <div class="card-header">
+                        <i class="fas fa-money-bill-wave"></i> Tuition Fee
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="serial-number-display" id="tuitionFeeSerialDisplay" th:text="${currentSerials != null ? currentSerials.tuitionFeeSerial : '0'}">0</div>
+                        <div class="last-updated" id="tuitionFeeLastUpdated">Waiting for update...</div>
+                        <button class="btn btn-sm btn-outline-secondary notify-btn-placeholder mt-3" title="Notification feature coming soon">
+                            <i class="fas fa-bell"></i> Notify Me
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4 d-flex">
+                <div class="card serial-card serial-card-hall w-100">
+                    <div class="card-header">
+                        <i class="fas fa-building-columns"></i> Hall Fee
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="serial-number-display" id="hallFeeSerialDisplay" th:text="${currentSerials != null ? currentSerials.hallFeeSerial : '0'}">0</div>
+                        <div class="last-updated" id="hallFeeLastUpdated">Waiting for update...</div>
+                         <button class="btn btn-sm btn-outline-secondary notify-btn-placeholder mt-3" title="Notification feature coming soon">
+                            <i class="fas fa-bell"></i> Notify Me
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4 d-flex">
+                <div class="card serial-card serial-card-clearance w-100">
+                    <div class="card-header">
+                        <i class="fas fa-file-signature"></i> Clearance
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="serial-number-display" id="clearanceSerialDisplay" th:text="${currentSerials != null ? currentSerials.clearanceSerial : '0'}">0</div>
+                        <div class="last-updated" id="clearanceLastUpdated">Waiting for update...</div>
+                         <button class="btn btn-sm btn-outline-secondary notify-btn-placeholder mt-3" title="Notification feature coming soon">
+                            <i class="fas fa-bell"></i> Notify Me
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div> </div> <footer class="text-center py-4 mt-auto bg-light">
+        <small class="text-muted">&copy; <span th:text="${#dates.year(#dates.createNow())}">2024</span> DIU Accounts Office. All rights reserved.</small>
+    </footer>
+
+    <div class="container mt-5">
+        <h4>My Serial History</h4>
+        <table class="table table-striped table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Date/Time</th>
+                    <th>Queue Type</th>
+                    <th>Serial Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="history : ${serialHistory}">
+                    <td th:text="${#temporals.format(history.timestamp, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 12:00:00</td>
+                    <td th:text="${#strings.capitalize(#strings.replace(history.queueType, '_', ' ').toLowerCase())}">Tuition Fee</td>
+                    <td th:text="${history.serialValue}">0</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(serialHistory)}">
+                    <td colspan="3" class="text-center text-muted">No serial history found.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script th:src="@{/js/app.js}"></script>
+    <script th:inline="javascript">
+        
+            const connectionStatusDiv = document.getElementById('connectionStatus');
+            const connectionStatusText = connectionStatusDiv ? connectionStatusDiv.querySelector('.status-text') : null;
+            const connectionStatusIcon = connectionStatusDiv ? connectionStatusDiv.querySelector('i') : null;
+
+            function setConnectionStatus(status, message) {
+                if (!connectionStatusDiv || !connectionStatusText || !connectionStatusIcon) return;
+                connectionStatusDiv.className = 'connection-status'; 
+                switch(status) {
+                    case 'connected':
+                        connectionStatusDiv.classList.add('status-connected');
+                        connectionStatusIcon.className = 'fas fa-check-circle';
+                        break;
+                    case 'disconnected':
+                        connectionStatusDiv.classList.add('status-disconnected');
+                        connectionStatusIcon.className = 'fas fa-plug-circle-xmark'; 
+                        break;
+                    case 'connecting':
+                    default: 
+                        connectionStatusDiv.classList.add('status-connecting');
+                        connectionStatusIcon.className = 'fas fa-spinner fa-spin'; 
+                        break;
+                }
+                connectionStatusText.textContent = message;
+            }
+
+       
+            function updateDisplayAndTimestamp(queueType, serialValue) {
+                const queueTypeClean = queueType.toLowerCase().replace('_', ''); 
+                const displayElementId = queueTypeClean + 'SerialDisplay';
+                const lastUpdatedElementId = queueTypeClean + 'LastUpdated';
+
+                const displayElement = document.getElementById(displayElementId);
+                const lastUpdatedElement = document.getElementById(lastUpdatedElementId);
+
+                if (displayElement) {
+                    if (displayElement.textContent !== String(serialValue)) {
+                        displayElement.textContent = serialValue;
+                        displayElement.classList.add('updated');
+                        setTimeout(() => displayElement.classList.remove('updated'), 600); 
+                    }
+                }
+                if (lastUpdatedElement) {
+                    const now = new Date();
+                    lastUpdatedElement.textContent = 'Last updated: ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if (connectionStatusDiv && !connectionStatusDiv.classList.contains('status-connecting')) {
+    
+                }
+            });
+
+    </script>
+</body>
+</html>
